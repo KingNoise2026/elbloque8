@@ -135,7 +135,8 @@ async function cargarEventos(){
       return {
         inicio: columnas[0]?.trim(),
         fin: columnas[1]?.trim() || null,
-        nombre: columnas.slice(2).join(",").trim()
+        nombre: columnas[2]?.trim(),
+        fecha: columnas[3]?.trim() || null
       };
     }).filter(e => e.inicio && e.nombre);
 
@@ -161,12 +162,19 @@ function actualizarReloj(){
 function actualizar(){
   const now = new Date();
   const minutos = now.getHours()*60 + now.getMinutes();
+  const hoy = new Date().toISOString().split("T")[0];
 
   eventos.sort((a,b)=>horaAminutos(a.inicio)-horaAminutos(b.inicio));
 
   let actuales=[], futuros=[];
 
   eventos.forEach(e=>{
+    // Si tiene fecha futura → directo a preparación
+    if(e.fecha && e.fecha > hoy){
+      futuros.push(e);
+      return;
+    }
+
     let ini = horaAminutos(e.inicio);
     let fin = e.fin ? horaAminutos(e.fin) : ini+15;
 
@@ -184,7 +192,7 @@ function actualizar(){
 
   let html = lista.map(e=>`
     <div class="item">${e.nombre}
-      <span class="hora">${e.inicio}</span>
+      <span class="hora">${e.inicio}${e.fecha ? " - " + e.fecha : ""}</span>
     </div>
   `).join("");
 
@@ -233,4 +241,3 @@ init();
 
 </body>
 </html>
-
